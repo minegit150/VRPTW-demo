@@ -1,0 +1,103 @@
+/* static/VRP1/css/styles_data.css */
+.data-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 20px;
+}
+
+.navigation {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.problem-list {
+    margin-top: 2rem;
+}
+
+.problem-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.problem-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.problem-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.label {
+    display: block;
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.value {
+    font-weight: 500;
+    color: #333;
+}
+
+.problem-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn {
+    background: #e9ecef;
+    color: #333;
+}
+
+.action-btn.primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.data-visualization {
+    margin-top: 3rem;
+}
+
+.charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.chart-placeholder {
+    height: 200px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-top: 1rem;
+}

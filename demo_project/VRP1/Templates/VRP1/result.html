@@ -1,0 +1,249 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kết quả & Cung đường</title>
+  <link rel="stylesheet" href="{% static 'planner/styles.css' %}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    html, body { height:100%; margin:0; font-family:'Segoe UI', sans-serif; background:#f0f2f5; }
+    .section-gap { margin-bottom:16px; }
+    .distance-list { list-style:none; padding:0; }
+    .distance-list li { background:#fff; margin-bottom:8px; padding:8px 12px; border:1px solid #ddd; border-radius:4px; display:flex; align-items:center; gap:8px; }
+    .color-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .container { display:flex; height:100%; }
+    .info-container { width:50%; overflow-y:auto; background:#fff; padding:24px; box-sizing:border-box; border-right:1px solid #e0e0e0; position:relative; }
+    .map-container { width:50%; position:relative; background:#fefefe; }
+    #map { position:absolute; width:100%; height:100%; }
+    .btn-back { position:absolute; top:16px; left:16px; z-index:1000; background:#fff; border:1px solid #ccc; padding:6px 12px; border-radius:4px; cursor:pointer; }
+    .order-group { margin-bottom:16px; }
+    .btn-action{
+      margin-bottom: 15pt;
+    }
+    .btn-toggle { background:#007bff; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
+    .btn-toggle:hover { opacity:0.9; }
+    .group-details table { width:100%; border-collapse:collapse; margin-top:8px; }
+    .group-details th, .group-details td { border:1px solid #ddd; padding:8px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="info-container">
+      <div class="distance-info section-gap">
+        <h2>Thông tin khoảng cách</h2>
+        <ul id="distanceResult" class="distance-list">
+          <li>Đang tải...</li>
+        </ul>
+      </div>
+
+      <div class="order-info section-gap">
+        <h2>Thông tin đơn hàng</h2>
+        <!-- Container nhóm đơn hàng theo đại lý -->
+        <div id="orderGroups"></div>
+        <form id="vehicleForm">
+          <div class="form-group section-gap">
+            <label for="vehicleCount">Số lượng xe:</label>
+            <input type="number" id="vehicleCount" name="vehicleCount" min="1" value="1" required>
+          </div>
+          <div class="form-group section-gap">
+            <label for="vehicleType">Chọn loại xe:</label>
+            <select id="vehicleType" name="vehicleType" class="vehicle-select" required>
+              <option value="to">To (10 tấn, 30.000 đồng/km)</option>
+              <option value="trung-binh">Trung bình (5 tấn, 20.000 đồng/km)</option>
+              <option value="nho">Nhỏ (2 tấn, 15.000 đồng/km)</option>
+            </select>
+          </div>
+        </form>
+
+      </div>
+      <div class="section-gap">
+        <button id="simulateButton" class="btn-action">Mô phỏng</button>
+        <button id="backToPlannerButton" class="btn-action1">Trở lại</button>
+      </div>
+    </div>
+
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script>
+    // Nút Trở lại (dưới form)
+    document.getElementById('backToPlannerButton').addEventListener('click', () => {
+      window.location.href = '/planner';
+    });
+
+    // Nút Mô phỏng (hiện placeholder)
+    document.getElementById('simulateButton').addEventListener('click', () => {
+      alert('Chức năng mô phỏng đang được phát triển');
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    // Hiển thị đơn hàng theo từng đại lý
+    function loadOrderInfo() {
+      const data = JSON.parse(localStorage.getItem('data_demo') || '[]');
+      const container = document.getElementById('orderGroups');
+      container.innerHTML = '';
+
+      // Nhóm đơn theo tên đại lý
+      const groups = data.reduce((acc, item) => {
+        const key = item['Tên điểm giao hàng'];
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+      }, {});
+
+      // Tạo UI cho từng nhóm
+      Object.entries(groups).forEach(([agentName, orders]) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'order-group';
+
+        // Nút toggle
+        const btn = document.createElement('button');
+        btn.className = 'btn-toggle';
+        btn.textContent = `Đại lý ${agentName} (${orders.length} đơn)`;
+        btn.addEventListener('click', () => {
+          const details = groupDiv.querySelector('.group-details');
+          details.style.display = details.style.display === 'none' ? 'block' : 'none';
+        });
+        groupDiv.appendChild(btn);
+
+        // Chi tiết ẩn
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'group-details';
+        detailsDiv.style.display = 'none';
+
+        // Bảng chi tiết đơn
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = `<tr>
+          <th>STT</th>
+          <th>Thời gian bắt đầu</th>
+          <th>Thời gian kết thúc</th>
+          <th>Khối lượng (kg)</th>
+        </tr>`;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        orders.forEach(o => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${o.STT}</td>
+            <td>${o['Thời gian bắt đầu']}</td>
+            <td>${o['Thời gian kết thúc']}</td>
+            <td>${o['Khối lượng đặt hàng (kg)']}</td>`;
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        detailsDiv.appendChild(table);
+        groupDiv.appendChild(detailsDiv);
+
+        container.appendChild(groupDiv);
+      });
+    }
+
+    // Phần calculateDistances() giữ nguyên logic đã có
+    const brightDepotToAgentColors = ["#FF0000","#00AA00","#0000FF","#000000","#FFFF00","#00FFFF","#FF6600","#6600FF"];
+    const brightAgentToAgentColors = ["#F054aa","#00F4FF","#FF9000","#0090FF","#008000","#910707"];
+    const defaultStyle = { weight:6, opacity:0.9 };
+    const highlightStyle = { weight:10, opacity:1.0 };
+    const dimStyle = { weight:6, opacity:0.3 };
+    let depotAgentPolylines = [], agentAgentPolylines = [];
+
+    async function fetchRoadRoute(start,end) {
+      const url = `https://router.project-osrm.org/route/v1/driving/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson`;
+      try {
+        const resp = await fetch(url);
+        const j = await resp.json();
+        if (j.routes && j.routes.length) return j.routes[0];
+      } catch(e) { console.error(e); }
+      return null;
+    }
+    function resetAllPolyStyles() {
+      depotAgentPolylines.forEach(o=>o.layer.setStyle(defaultStyle));
+      agentAgentPolylines.forEach(o=>o.layer.setStyle(defaultStyle));
+    }
+    function highlightRelatedLines(idx,type) {
+      depotAgentPolylines.forEach(o=>o.layer.setStyle(
+        type==='depot'||(type==='agent'&&o.agentIndex===idx)?highlightStyle:dimStyle
+      ));
+      agentAgentPolylines.forEach(o=>o.layer.setStyle(
+        type==='agent'&&o.agentIndices.includes(idx)?highlightStyle:(type==='depot'?defaultStyle:dimStyle)
+      ));
+    }
+
+    async function calculateDistances() {
+      const ul = document.getElementById('distanceResult'); ul.innerHTML = '';
+      const saved = JSON.parse(localStorage.getItem('vrptw_coords')||'{}');
+      if (!saved.depot||!saved.agents) {
+        ul.innerHTML = '<li>Không tìm thấy tọa độ. Vui lòng quay lại trang nhập.</li>';
+        return;
+      }
+      const map = L.map('map').setView(saved.depot,13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
+      const depotIcon = L.icon({ iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', shadowUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41] });
+      const agentIcon = L.icon({ iconUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', shadowUrl:'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41] });
+      L.marker(saved.depot,{icon:depotIcon}).addTo(map).bindPopup("Kho hàng").on('click',()=>highlightRelatedLines(null,'depot'));
+      let html = '<li style="font-weight:bold">Khoảng cách từ kho hàng đến đại lý:</li>';
+      const allPts = [L.latLng(saved.depot[0],saved.depot[1])];
+      for (let i=0; i<saved.agents.length; i++) {
+        const color = brightDepotToAgentColors[i % brightDepotToAgentColors.length];
+        const route = await fetchRoadRoute(saved.depot, saved.agents[i]);
+        if (route) {
+          const d = (route.distance/1000).toFixed(2);
+          html += `<li><span class="color-dot" style="background-color:${color}"></span>Kho hàng → Đại lý ${i+1}: ${d} km</li>`;
+          const geo = L.geoJSON(route.geometry,{ style:{color,...defaultStyle} }).addTo(map);
+          depotAgentPolylines.push({layer:geo,agentIndex:i});
+          geo.on('click',e=>{ resetAllPolyStyles(); geo.setStyle(highlightStyle); map.fitBounds(geo.getBounds()); L.popup().setLatLng(e.latlng).setContent(`Tuyến Kho hàng → Đại lý ${i+1}: ${d} km`).openOn(map); });
+        } else {
+          html += `<li><span class="color-dot" style="background-color:gray"></span>Kho hàng → Đại lý ${i+1}: Lỗi</li>`;
+        }
+        L.marker(saved.agents[i],{icon:agentIcon}).addTo(map).bindPopup(`Đại lý ${i+1}`).on('click',()=>highlightRelatedLines(i,'agent'));
+        allPts.push(L.latLng(saved.agents[i][0],saved.agents[i][1]));
+      }
+      html += '<li style="margin-top:10px;font-weight:bold">Khoảng cách giữa các đại lý:</li>';
+      let ci = 0;
+      for (let i=0; i<saved.agents.length; i++) {
+        for (let j=i+1; j<saved.agents.length; j++) {
+          const color = brightAgentToAgentColors[(ci++) % brightAgentToAgentColors.length];
+          const route = await fetchRoadRoute(saved.agents[i], saved.agents[j]);
+          if (route) {
+            const d = (route.distance/1000).toFixed(2);
+            html += `<li><span class="color-dot" style="background-color:${color}"></span>Đại lý ${i+1} → Đại lý ${j+1}: ${d} km</li>`;
+            const geo = L.geoJSON(route.geometry,{ style:{color,...defaultStyle,dashArray:"5,8"} }).addTo(map);
+            agentAgentPolylines.push({layer:geo,agentIndices:[i,j]});
+            geo.on('click',e=>{ resetAllPolyStyles(); geo.setStyle(highlightStyle); map.fitBounds(geo.getBounds()); L.popup().setLatLng(e.latlng).setContent(`Tuyến Đại lý ${i+1} → Đại lý ${j+1}: ${d} km`).openOn(map); });
+          } else {
+            html += `<li><span class="color-dot" style="background-color:gray"></span>Đại lý ${i+1} → Đại lý ${j+1}: Lỗi</li>`;
+          }
+        }
+      }
+      document.getElementById('distanceResult').innerHTML = html;
+      map.fitBounds(L.latLngBounds(allPts));
+      map.on('click', resetAllPolyStyles);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadOrderInfo();
+      calculateDistances();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kết quả & Cung đường</title>
+  <link rel="stylesheet" href="{% static 'VRP1/css/styles_result.css' %}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    html, body { height:100%; margin:0; font-family:'Segoe UI', sans-serif; background:#f0f2f5; }
+    .section-gap { margin-bottom:16px; }
+    .distance-list { list-style:none; padding:0; }
+    .distance-list li { background:#fff; margin-bottom:8px; padding:8px 12px; border:1px solid #ddd; border-radius:4px; display:flex; align-items:center; gap:8px; }
+    .color-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .container { display:flex; height:100%; }
+    .info-container { width:50%; overflow-y:auto; background:#fff; padding:24px; box-sizing:border-box; border-right:1px solid #e0e0e0; position:relative; }
+    .map-container { width:50%; position:relative; background:#fefefe; }
+    #map { position:absolute; width:100%; height:100%; }
+    .btn-back { position:absolute; top:16px; left:16px; z-index:1000; background:#fff; border:1px solid #ccc; padding:6px 12px; border-radius:4px; cursor:pointer; }
+    .order-group { margin-bottom:16px; }
+    .btn-action{
+      margin-bottom: 15pt;
+    }
+    .btn-toggle { background:#007bff; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
+    .btn-toggle:hover { opacity:0.9; }
+    .group-details table { width:100%; border-collapse:collapse; margin-top:8px; }
+    .group-details th, .group-details td { border:1px solid #ddd; padding:8px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="info-container">
+      <div class="distance-info section-gap">
+        <h2>Thông tin khoảng cách</h2>
+        <ul id="distanceResult" class="distance-list">
+          <li>Đang tải...</li>
+        </ul>
+      </div>
+
+      <div class="order-info section-gap">
+        <h2>Thông tin đơn hàng</h2>
+        <!-- Container nhóm đơn hàng theo đại lý -->
+        <div id="orderGroups"></div>
+        <form id="vehicleForm">
+          <div class="form-group section-gap">
+            <label for="vehicleCount">Số lượng xe:</label>
+            <input type="number" id="vehicleCount" name="vehicleCount" min="1" value="1" required>
+          </div>
+          <div class="form-group section-gap">
+            <label for="vehicleType">Chọn loại xe:</label>
+            <select id="vehicleType" name="vehicleType" class="vehicle-select" required>
+              <option value="to">To (10 tấn, 30.000 đồng/km)</option>
+              <option value="trung-binh">Trung bình (5 tấn, 20.000 đồng/km)</option>
+              <option value="nho">Nhỏ (2 tấn, 15.000 đồng/km)</option>
+            </select>
+          </div>
+          <div class="form-group section-gap">
+            <label for="averageSpeed">Vận tốc trung bình (km/h):</label>
+            <input type="number" id="averageSpeed" name="averageSpeed" min="30" max="100" value="50" required>
+        </div>
+        <!-- Thời gian cửa cho xe -->
+        <div class="form-group section-gap">
+          <label for="vehicleStartTime">Thời gian khởi hành:</label>
+          <input type="datetime-local" id="vehicleStartTime" name="vehicleStartTime" required>
+        </div>
+        <div class="form-group section-gap">
+          <label for="vehicleEndTime">Thời gian kết thúc:</label>
+          <input type="datetime-local" id="vehicleEndTime" name="vehicleEndTime" required>
+        </div>
+        </form>
+
+      </div>
+      <div class="section-gap">
+        <button id="simulateButton" class="btn-action">Mô phỏng</button>
+        <button id="backToIndexButton" class="btn-action1">Trở lại</button>
+      </div>
+    </div>
+
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+  </div>
+
+  <script src="{% static 'VRP1/js/result.js' %}"></script>
+</body>
+</html>

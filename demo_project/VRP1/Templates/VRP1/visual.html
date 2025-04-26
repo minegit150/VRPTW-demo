@@ -1,0 +1,328 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Mô phỏng tuyến đường</title>
+  <link rel="stylesheet" href="{% static 'planner/styles.css' %}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f7fa;
+    }
+    
+    .container {
+      display: flex;
+      height: 100%;
+    }
+    
+    .control-panel {
+      width: 320px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 10;
+      overflow-y: auto;
+    }
+    
+    .map-container {
+      flex: 1;
+      position: relative;
+    }
+    
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eaeaea;
+    }
+    
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 5px 0;
+      color: #2d3748;
+    }
+    
+    .subtitle {
+      font-size: 0.9rem;
+      color: #718096;
+      margin: 0;
+    }
+    
+    .control-group {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eaeaea;
+    }
+    
+    .control-group:last-child {
+      border-bottom: none;
+    }
+    
+    .btn {
+      display: inline-block;
+      background: #4299e1;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .btn:hover {
+      background: #3182ce;
+    }
+    
+    .btn-secondary {
+      background: #a0aec0;
+    }
+    
+    .btn-secondary:hover {
+      background: #718096;
+    }
+    
+    .btn-danger {
+      background: #f56565;
+    }
+    
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+    
+    .slider-container {
+      margin: 15px 0;
+    }
+    
+    .slider-container label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #4a5568;
+    }
+    
+    .slider-value {
+      display: inline-block;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    
+    .info-box {
+      background: #ebf8ff;
+      border: 1px solid #bee3f8;
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+      color: #2c5282;
+    }
+    
+    .info-item {
+      margin-bottom: 8px;
+    }
+    
+    .info-title {
+      font-weight: 600;
+      display: block;
+    }
+    
+    .info-value {
+      margin-left: 12px;
+    }
+    
+    .color-swatch {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      margin-right: 5px;
+    }
+    
+    .vehicle-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .vehicle-icon {
+      width: 30px;
+      height: 20px;
+      margin-right: 10px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    
+    .vehicle-label {
+      font-size: 0.9rem;
+    }
+    
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+      font-size: 0.8rem;
+    }
+    
+    .legend-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    
+    /* Popup styling */
+    .leaflet-popup-content {
+      margin: 10px;
+    }
+    
+    .route-info {
+      font-size: 0.9rem;
+    }
+    
+    .route-type {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    .route-details {
+      margin-top: 5px;
+    }
+    
+    .solver-method {
+      margin: 15px 0;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      width: 100%;
+  }
+  
+  .time-info {
+      color: #2c5282;
+      font-weight: 600;
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="control-panel">
+      <div class="header">
+        <h1>Mô phỏng tuyến đường</h1>
+        <p class="subtitle">Hiển thị lộ trình di chuyển của các phương tiện</p>
+      </div>
+      
+      <div class="control-group">
+        <h2>Thông tin mô phỏng</h2>
+        <div class="info-box">
+          <div class="info-item">
+            <span class="info-title">Loại xe:</span>
+            <span id="vehicleTypeInfo" class="info-value">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-title">Số lượng xe:</span>
+            <span id="vehicleCountInfo" class="info-value">-</span>
+          </div>
+          <div class="info-item">
+            <span class="info-title">Tổng số điểm giao hàng:</span>
+            <span id="totalStopsInfo" class="info-value">-</span>
+          </div>
+          <!-- Thêm trong info-box -->
+          <div class="info-item">
+            <span class="info-title">Thời gian di chuyển:</span>
+            <span id="travelTimeInfo" class="info-value">-</span>
+          </div>
+        </div>
+        
+        <!-- Thêm trong phần control-group -->
+        <div class="control-group">
+          <h2>Phương thức giải</h2>
+          <select id="solverMethod" class="btn">
+              <option value="cplex">CPLEX (MILP)</option>
+              <option value="clark-wright">Clark-Wright</option>
+          </select>
+        </div>
+
+      
+
+        <div class="vehicle-types">
+          <h3>Loại phương tiện</h3>
+          <div class="vehicle-info">
+            <div class="vehicle-icon" style="background-image: url('https://cdn-icons-png.flaticon.com/128/3774/3774290.png')"></div>
+            <div class="vehicle-label">Xe tải lớn (10 tấn)</div>
+          </div>
+          <div class="vehicle-info">
+            <div class="vehicle-icon" style="background-image: url('https://cdn-icons-png.flaticon.com/128/3774/3774288.png')"></div>
+            <div class="vehicle-label">Xe tải vừa (5 tấn)</div>
+          </div>
+          <div class="vehicle-info">
+            <div class="vehicle-icon" style="background-image: url('https://cdn-icons-png.flaticon.com/128/3774/3774257.png')"></div>
+            <div class="vehicle-label">Xe tải nhỏ (2 tấn)</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h2>Điều khiển mô phỏng</h2>
+        <button id="startSimulation" class="btn">Bắt đầu mô phỏng</button>
+        <button id="pauseSimulation" class="btn btn-secondary">Tạm dừng</button>
+        <button id="resetSimulation" class="btn btn-danger">Đặt lại</button>
+        
+        <div class="slider-container">
+          <label for="speedSlider">Tốc độ mô phỏng: <span id="speedValue" class="slider-value">1x</span></label>
+          <input type="range" id="speedSlider" min="0.5" max="5" step="0.5" value="1" style="width: 100%">
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <h2>Thao tác</h2>
+        <button id="backToResults" class="btn">Quay lại kết quả</button>
+      </div>
+    </div>
+    
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="legend">
+        <div class="legend-title">Chú thích</div>
+        <div class="legend-item">
+          <span class="color-swatch" style="background-color: #FF0000"></span>
+          <span>Kho hàng đến đại lý</span>
+        </div>
+        <div class="legend-item">
+          <span class="color-swatch" style="background-color: #00AA00"></span>
+          <span>Giữa các đại lý</span>
+        </div>
+        <div class="legend-item">
+          <span class="color-swatch" style="background-color: red"></span>
+          <span>Kho hàng</span>
+        </div>
+        <div class="legend-item">
+          <span class="color-swatch" style="background-color: blue"></span>
+          <span>Đại lý</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{% static 'VRP1/js/visual.js' %}"></script>
+</body>
+</html>

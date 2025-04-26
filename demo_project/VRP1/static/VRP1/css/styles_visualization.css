@@ -1,0 +1,199 @@
+/* Base styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100%;
+    background-color: #f0f2f5;
+}
+
+/* Container layout */
+.container {
+    display: flex;
+    height: 100%;
+}
+
+.results-container {
+    width: 50%;
+    overflow-y: auto;
+    background: #fff;
+    padding: 24px;
+    box-sizing: border-box;
+    border-right: 1px solid #e0e0e0;
+}
+
+.map-container {
+    width: 50%;
+    position: relative;
+    background: #fefefe;
+}
+
+#map {
+    position: absolute;
+    width: 100%;
+    height: 100%; 
+}
+
+/* UI Elements */
+.btn-back {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+    background: #0069d9;
+}
+
+/* Results styling */
+.result-title {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.result-section {
+    margin-bottom: 30px;
+}
+
+.result-summary {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.route-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.route-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.route-header {
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.route-stops, .route-costs {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.route-stop {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.route-cost {
+    color: #28a745;
+    margin-bottom: 6px;
+}
+
+.route-total {
+    font-weight: bold;
+    margin-top: 10px;
+    color: #007bff;
+}
+
+.retailer-card {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.retailer-card h3 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Loading indicator */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    flex-direction: column;
+}
+
+.loading-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error message */
+.error-message {
+    color: #dc3545;
+    background: #f8d7da;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+}
+
+/* Route visualization */
+.color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .results-container, .map-container {
+        width: 100%;
+    }
+    
+    .results-container {
+        height: 50%;
+        overflow-y: auto;
+    }
+    
+    .map-container {
+        height: 50%;
+    }
+}

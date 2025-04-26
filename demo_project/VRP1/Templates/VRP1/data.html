@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý dữ liệu VRPTW</title>
+    <link rel="stylesheet" href="{% static 'VRP1/css/styles_data.css' %}">
+</head>
+<body>
+    <div class="data-container">
+        <h1>📂 Kho dữ liệu VRPTW</h1>
+        
+        <!-- Nút điều hướng -->
+        <div class="navigation">
+            <a href="{% url 'VRP1:index' %}" class="btn">← Quay lại nhập liệu</a>
+            <button class="btn" id="import-data">📤 Import CSV</button>
+        </div>
+
+        <!-- Danh sách bài toán đã lưu -->
+        <div class="problem-list">
+            <h2>🏷️ Bài toán đã lưu</h2>
+            
+            <div class="problem-card">
+                <div class="problem-header">
+                    <h3>Case 1: Phân phối Hà Nội</h3>
+                    <span class="timestamp">🕒 15/03/2024 10:30</span>
+                </div>
+                <div class="problem-stats">
+                    <div class="stat">
+                        <span class="label">Kho hàng:</span>
+                        <span class="value">21.0278, 105.8342</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Số đại lý:</span>
+                        <span class="value">8</span>
+                    </div>
+                    <div class="stat">
+                        <span class="label">Chi phí tối ưu:</span>
+                        <span class="value">2,450,000 VND</span>
+                    </div>
+                </div>
+                <div class="problem-actions">
+                    <button class="btn action-btn">🗑️ Xóa</button>
+                    <button class="btn action-btn">📥 Xuất CSV</button>
+                    <button class="btn action-btn primary">🚀 Áp dụng</button>
+                </div>
+            </div>
+
+            <!-- Thêm các card khác tại đây -->
+        </div>
+
+        <!-- Biểu đồ thống kê -->
+        <div class="data-visualization">
+            <h2>📊 Thống kê hiệu suất</h2>
+            <div class="charts">
+                <div class="chart-card">
+                    <h4>Phân bổ chi phí theo loại xe</h4>
+                    <div class="chart-placeholder"></div>
+                </div>
+                <div class="chart-card">
+                    <h4>Tần suất sử dụng xe</h4>
+                    <div class="chart-placeholder"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script xử lý -->
+    <script>
+        // Xử lý sự kiện cho nút áp dụng
+        document.querySelectorAll('.action-btn.primary').forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert('Tính năng đang phát triển!');
+            });
+        });
+    </script>
+</body>
+</html>

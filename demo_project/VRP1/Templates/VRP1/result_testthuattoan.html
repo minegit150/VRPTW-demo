@@ -1,0 +1,141 @@
+<!-- result.html -->
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kết quả định tuyến VRPTW</title>
+    <link rel="stylesheet" href="{% static 'VRP1/css/styles_result.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .action-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .action-button:hover {
+            background-color: #45a049;
+        }
+        .back-button {
+            background-color: #f44336;
+        }
+        .back-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="result-summary">
+            <h2>Kết quả định tuyến</h2>
+            <p>Tổng chi phí: {{ total_cost|floatformat:0 }} VND</p>
+            <p>Số xe sử dụng: {{ vehicle_used }}</p>
+        </div>
+
+        <div class="map-routes">
+            <div id="map"></div>
+            <div class="route-list">
+                {% for route in routes %}
+                <div class="route">
+                    <h3>Xe {{ forloop.counter }}</h3>
+                    <ul>
+                        {% for step in route %}
+                        <li>
+                            {{ step.location.0|floatformat:4 }}, {{ step.location.1|floatformat:4 }}
+                            <span class="time">{{ step.arrival_time|floatformat:1 }} phút</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'VRP1:visualization' %}" class="action-button">Trực quan hóa tuyến đường</a>
+            <a href="{% url 'VRP1:index' %}" class="action-button back-button">Trở về trang chủ</a>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript để vẽ bản đồ và các tuyến đường
+        const map = L.map('map');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Màu sắc cho các tuyến đường
+        const colors = ['#FF0000', '#0000FF', '#00FF00', '#FF00FF', '#FFFF00', '#00FFFF'];
+        
+        // Danh sách tất cả các điểm
+        const allPoints = [];
+        
+        // Vẽ các tuyến đường từ kết quả
+        {% for route in routes %}
+            const routePoints = [];
+            {% for step in route %}
+                const point = [{{ step.location.0 }}, {{ step.location.1 }}];
+                routePoints.push(point);
+                allPoints.push(point);
+                
+                // Tạo marker cho điểm này
+                const marker = L.marker(point).addTo(map);
+                {% if forloop.first %}
+                    // Đánh dấu điểm đầu tiên (kho) với popup đặc biệt
+                    marker.bindPopup("Kho hàng<br>Thời gian: {{ step.arrival_time|floatformat:1 }} phút").openPopup();
+                {% else %}
+                    marker.bindPopup("Điểm {{ forloop.counter }}<br>Thời gian: {{ step.arrival_time|floatformat:1 }} phút");
+                {% endif %}
+            {% endfor %}
+            
+            // Vẽ đường nối các điểm trong tuyến
+            const polyline = L.polyline(routePoints, {
+                color: colors[{{ forloop.counter0 }} % colors.length],
+                weight: 3,
+                opacity: 0.7
+            }).addTo(map);
+            
+            // Thêm mũi tên chỉ hướng đi
+            const arrowPoints = [routePoints[0]];
+            for (let i = 1; i < routePoints.length; i++) {
+                arrowPoints.push(routePoints[i]);
+                
+                // Tính toán điểm giữa
+                const midLat = (routePoints[i-1][0] + routePoints[i][0]) / 2;
+                const midLng = (routePoints[i-1][1] + routePoints[i][1]) / 2;
+                
+                // Thêm marker mũi tên
+                const arrowIcon = L.divIcon({
+                    html: '➡️',
+                    iconSize: [20, 20],
+                    className: 'arrow-icon'
+                });
+                
+                L.marker([midLat, midLng], {icon: arrowIcon}).addTo(map);
+            }
+        {% endfor %}
+        
+        // Kiểm tra nếu có điểm trên bản đồ
+        if (allPoints.length > 0) {
+            // Điều chỉnh khung nhìn để hiển thị tất cả các điểm
+            map.fitBounds(allPoints);
+        } else {
+            // Mặc định: hiển thị Hà Nội
+            map.setView([21.0278, 105.8342], 13);
+        }
+    </script>
+</body>
+</html>
+
+{% comment %} #18/4 ko dùng đến {% endcomment %}

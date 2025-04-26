@@ -1,0 +1,48 @@
+/*=============== GOOGLE FONTS ===============*/
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,200..1000&display=swap");
+
+/* Thiết lập font chữ, màu nền và khoảng cách chung cho trang */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f9;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+/* Định dạng cho tiêu đề chính */
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+
+/* Sử dụng Flexbox để chia giao diện thành 2 cột */
+.container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+/* Cột bên trái: hiển thị kết quả và các yêu cầu bổ sung */
+.result-container {
+  width: 50%;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.map-container {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 5px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Cài đặt kích thước cho vùng hiển thị bản đồ */
+#map {
+  width: 100%;
+  height: 100%;
+}
